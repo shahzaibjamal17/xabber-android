@@ -14,12 +14,12 @@
  */
 package com.xabber.android.data.connection;
 
-import org.jivesoftware.smack.XMPPConnection;
-
 import com.xabber.android.data.Application;
 import com.xabber.android.data.LogManager;
 import com.xabber.android.data.account.AccountProtocol;
 import com.xabber.androiddev.R;
+
+import org.jivesoftware.smack.XMPPConnection;
 
 /**
  * Abstract connection.

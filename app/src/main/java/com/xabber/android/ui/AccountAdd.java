@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2013, Redsolution LTD. All rights reserved.
- * 
+ *
  * This file is part of Xabber project; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License, Version 3.
- * 
+ *
  * Xabber is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License,
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
@@ -23,9 +23,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.xabber.android.data.Application;
@@ -33,10 +31,8 @@ import com.xabber.android.data.NetworkException;
 import com.xabber.android.data.account.AccountManager;
 import com.xabber.android.data.account.AccountType;
 import com.xabber.android.data.intent.AccountIntentBuilder;
-import com.xabber.android.ui.adapter.AccountTypeAdapter;
 import com.xabber.android.ui.dialog.OrbotInstallerDialogBuilder;
 import com.xabber.android.ui.helper.ManagedActivity;
-import com.xabber.android.ui.helper.OrbotHelper;
 import com.xabber.androiddev.R;
 
 public class AccountAdd extends ManagedActivity implements
@@ -48,10 +44,10 @@ public class AccountAdd extends ManagedActivity implements
 
 	private static final int ORBOT_DIALOG_ID = 9050;
 
-	private CheckBox storePasswordView;
-	private CheckBox useOrbotView;
-	private CheckBox syncableView;
-	private Spinner accountTypeView;
+//	private CheckBox storePasswordView;
+//	private CheckBox useOrbotView;
+//	private CheckBox syncableView;
+//	private Spinner accountTypeView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,30 +57,30 @@ public class AccountAdd extends ManagedActivity implements
 
 		setContentView(R.layout.account_add);
 
-		storePasswordView = (CheckBox) findViewById(R.id.store_password);
-		useOrbotView = (CheckBox) findViewById(R.id.use_orbot);
-		syncableView = (CheckBox) findViewById(R.id.syncable);
-		if (!Application.getInstance().isContactsSupported()) {
-			syncableView.setVisibility(View.GONE);
-			syncableView.setChecked(false);
-		}
-
-		accountTypeView = (Spinner) findViewById(R.id.account_type);
-		accountTypeView.setAdapter(new AccountTypeAdapter(this));
-		accountTypeView.setOnItemSelectedListener(this);
+//		storePasswordView = (CheckBox) findViewById(R.id.store_password);
+//		useOrbotView = (CheckBox) findViewById(R.id.use_orbot);
+//		syncableView = (CheckBox) findViewById(R.id.syncable);
+//		if (!Application.getInstance().isContactsSupported()) {
+//			syncableView.setVisibility(View.GONE);
+//			syncableView.setChecked(false);
+//		}
+//
+//		accountTypeView = (Spinner) findViewById(R.id.account_type);
+//		accountTypeView.setAdapter(new AccountTypeAdapter(this));
+//		accountTypeView.setOnItemSelectedListener(this);
 
 		String accountType;
 		if (savedInstanceState == null)
 			accountType = null;
 		else
 			accountType = savedInstanceState.getString(SAVED_ACCOUNT_TYPE);
-		accountTypeView.setSelection(0);
-		for (int position = 0; position < accountTypeView.getCount(); position++)
-			if (((AccountType) accountTypeView.getItemAtPosition(position))
-					.getName().equals(accountType)) {
-				accountTypeView.setSelection(position);
-				break;
-			}
+//		accountTypeView.setSelection(0);
+//		for (int position = 0; position < accountTypeView.getCount(); position++)
+//			if (((AccountType) accountTypeView.getItemAtPosition(position))
+//					.getName().equals(accountType)) {
+//				accountTypeView.setSelection(position);
+//				break;
+//			}
 
 		((Button) findViewById(R.id.ok)).setOnClickListener(this);
 		InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -95,8 +91,10 @@ public class AccountAdd extends ManagedActivity implements
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putString(SAVED_ACCOUNT_TYPE,
-				((AccountType) accountTypeView.getSelectedItem()).getName());
+//        outState.putString(SAVED_ACCOUNT_TYPE,
+//                ((AccountType) accountTypeView.getSelectedItem()).getName());
+        outState.putString(SAVED_ACCOUNT_TYPE,
+                AccountManager.getInstance().getAccountTypes().get(0).getName());
 	}
 
 	@Override
@@ -111,15 +109,19 @@ public class AccountAdd extends ManagedActivity implements
 				} else {
 					String account;
 					try {
-						account = AccountManager.getInstance()
-								.addAccount(
-										null,
-										token,
-										(AccountType) accountTypeView
-												.getSelectedItem(),
-										syncableView.isChecked(),
-										storePasswordView.isChecked(),
-										useOrbotView.isChecked());
+                        AccountType type = AccountManager.getInstance().getAccountTypes().get(0);
+                        account = AccountManager.getInstance()
+                                .addAccount(
+                                        null, token, type, false, false, false);
+//                        account = AccountManager.getInstance()
+//                                .addAccount(
+//                                        null,
+//                                        token,
+//                                        (AccountType) accountTypeView
+//                                                .getSelectedItem(),
+//                                        syncableView.isChecked(),
+//                                        storePasswordView.isChecked(),
+//                                        useOrbotView.isChecked());
 					} catch (NetworkException e) {
 						Application.getInstance().onError(e);
 						return;
@@ -136,12 +138,13 @@ public class AccountAdd extends ManagedActivity implements
 	public void onClick(View view) {
 		switch (view.getId()) {
 		case R.id.ok:
-			if (useOrbotView.isChecked() && !OrbotHelper.isOrbotInstalled()) {
-				showDialog(ORBOT_DIALOG_ID);
-				return;
-			}
-			AccountType accountType = (AccountType) accountTypeView
-					.getSelectedItem();
+//			if (useOrbotView.isChecked() && !OrbotHelper.isOrbotInstalled()) {
+//				showDialog(ORBOT_DIALOG_ID);
+//				return;
+//			}
+//            AccountType accountType = (AccountType) accountTypeView
+//                    .getSelectedItem();
+            AccountType accountType = AccountManager.getInstance().getAccountTypes().get(0);
 			if (accountType.getProtocol().isOAuth()) {
 				startActivityForResult(
 						OAuthActivity.createIntent(this,
@@ -150,14 +153,15 @@ public class AccountAdd extends ManagedActivity implements
 			} else {
 				EditText userView = (EditText) findViewById(R.id.account_user_name);
 				EditText passwordView = (EditText) findViewById(R.id.account_password);
+
 				String account;
 				try {
 					account = AccountManager.getInstance().addAccount(
 							userView.getText().toString(),
-							passwordView.getText().toString(), accountType,
-							syncableView.isChecked(),
-							storePasswordView.isChecked(),
-							useOrbotView.isChecked());
+							userView.getText().toString(), accountType,
+							false,
+							false,
+							false);
 				} catch (NetworkException e) {
 					Application.getInstance().onError(e);
 					return;
@@ -174,8 +178,9 @@ public class AccountAdd extends ManagedActivity implements
 	@Override
 	public void onItemSelected(AdapterView<?> adapterView, View view,
 			int position, long id) {
-		AccountType accountType = (AccountType) accountTypeView
-				.getSelectedItem();
+//		AccountType accountType = (AccountType) accountTypeView
+//				.getSelectedItem();
+        AccountType accountType = AccountManager.getInstance().getAccountTypes().get(0);
 		if (accountType.getProtocol().isOAuth())
 			findViewById(R.id.auth_panel).setVisibility(View.GONE);
 		else
@@ -188,7 +193,7 @@ public class AccountAdd extends ManagedActivity implements
 
 	@Override
 	public void onNothingSelected(AdapterView<?> adapterView) {
-		accountTypeView.setSelection(0);
+//		accountTypeView.setSelection(0);
 	}
 
 	@Override

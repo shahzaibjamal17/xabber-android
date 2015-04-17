@@ -150,7 +150,12 @@ public class DummyCursor implements Cursor {
 		return 0;
 	}
 
-	@Override
+    @Override
+    public int getType(int i) {
+        return 0;
+    }
+
+    @Override
 	public boolean isNull(int paramInt) {
 		return false;
 	}
@@ -194,7 +199,12 @@ public class DummyCursor implements Cursor {
 			Uri paramUri) {
 	}
 
-	@Override
+    @Override
+    public Uri getNotificationUri() {
+        return null;
+    }
+
+    @Override
 	public boolean getWantsAllOnMoveCalls() {
 		return false;
 	}

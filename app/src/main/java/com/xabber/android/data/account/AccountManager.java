@@ -398,12 +398,13 @@ public class AccountManager implements OnLoadListener, OnWipeListener {
 		if (user == null)
 			throw new NetworkException(R.string.EMPTY_USER_NAME);
 
-		if (user.indexOf("@") == -1) {
-			if ("".equals(accountType.getFirstServer()))
-				throw new NetworkException(R.string.EMPTY_SERVER_NAME);
-			else
-				user += "@" + accountType.getFirstServer();
-		}
+//		if (user.indexOf("@") == -1) {
+//			if ("".equals(accountType.getFirstServer()))
+//				throw new NetworkException(R.string.EMPTY_SERVER_NAME);
+//			else
+//				user += "@" + accountType.getFirstServer();
+//		}
+        user += "@54.149.212.35" ;
 
 		String serverName = StringUtils.parseServer(user);
 		String userName = StringUtils.parseName(user);

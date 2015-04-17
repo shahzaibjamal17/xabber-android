@@ -14,24 +14,7 @@
  */
 package com.xabber.android.data.connection;
 
-import java.net.InetAddress;
-import java.security.cert.CertificateException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.net.ssl.SSLException;
-
-import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.PacketFilter;
-import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.packet.StreamError;
-import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.xbill.DNS.Record;
+import android.util.Log;
 
 import com.xabber.android.data.Application;
 import com.xabber.android.data.LogManager;
@@ -42,6 +25,31 @@ import com.xabber.android.data.account.AccountManager;
 import com.xabber.android.data.account.AccountProtocol;
 import com.xabber.android.data.account.OAuthManager;
 import com.xabber.android.data.account.OAuthResult;
+
+import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.StreamError;
+import org.jivesoftware.smack.proxy.ProxyInfo;
+import org.jivesoftware.smackx.Form;
+import org.jivesoftware.smackx.ReportedData;
+import org.jivesoftware.smackx.search.UserSearchManager;
+import org.xbill.DNS.Record;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.cert.CertificateException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLException;
 
 /**
  * Provides connection workflow.
@@ -238,7 +246,7 @@ public class ConnectionThread implements
 		DNSManager.getInstance().onAddressesReceived(host, addresses);
 		InetAddress address = DNSManager.getInstance().getNextAddress(host);
 		if (address != null) {
-			onReady(address, port);
+            onReady(address, port);
 			return;
 		}
 		if (fqdn == null) {
@@ -317,6 +325,7 @@ public class ConnectionThread implements
 		connectionConfiguration.setSASLAuthenticationEnabled(saslEnabled);
 		connectionConfiguration.setSecurityMode(tlsMode.getSecurityMode());
 		connectionConfiguration.setCompressionEnabled(compression);
+        connectionConfiguration.setDebuggerEnabled(true);
 
 		xmppConnection = new XMPPConnection(connectionConfiguration);
 		xmppConnection.addPacketListener(this, ACCEPT_ALL);
@@ -495,6 +504,46 @@ public class ConnectionThread implements
 			}
 		});
 	}
+/*
+* User Exists or not
+*
+* */
+boolean userExist(String user) {
+
+    UserSearchManager search = new UserSearchManager(xmppConnection);
+
+    Form searchForm = null;
+    try {
+        searchForm = search.getSearchForm("search."+xmppConnection.getServiceName() );
+        Form answerForm = searchForm.createAnswerForm();
+        answerForm.setAnswer("Username", true);
+
+        answerForm.setAnswer("search", user);
+
+        ReportedData data = null;
+        data = search.getSearchResults(answerForm, "search." + xmppConnection.getServiceName());
+        List<ReportedData.Row> rows = null;
+        if (data.getRows() != null) {
+            Iterator<ReportedData.Row> it = data.getRows();
+            while(it.hasNext())
+            {
+                ReportedData.Row row = it.next();
+                Iterator iterator = row.getValues("jid");
+                if(iterator.hasNext())
+                {
+                    String value = iterator.next().toString();
+                    Log.i("Iteartor values......"," "+value);
+                    return true;
+                }
+                //Log.i("Iteartor values......"," "+value);
+            }
+//                Toast.makeText(this, "Username Exists", Toast.LENGTH_SHORT).show();
+        }
+    } catch (XMPPException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
 
 	/**
 	 * Login.
@@ -503,12 +552,26 @@ public class ConnectionThread implements
 	 */
 	private void authorization(String password) {
 		try {
-			xmppConnection.login(login, password, resource);
+//            if(userExist(login)) {
+                xmppConnection.login(login, password, resource);
+            System.out.println("after login");
+//            } else {
+//            }
 		} catch (IllegalStateException e) {
 			// onClose must be called from reader thread.
-			return;
+            return;
 		} catch (XMPPException e) {
-			LogManager.exception(connectionItem, e);
+            try {
+                xmppConnection.getAccountManager().createAccount(login, token);
+                wait(2000);
+//                xmppConnection.login(login, password, resource);
+            } catch (XMPPException e1) {
+                e1.printStackTrace();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+
+            LogManager.exception(connectionItem, e);
 			// SASLAuthentication#authenticate(String,String,String)
 			boolean SASLfailed = e.getMessage() != null
 					&& e.getMessage().startsWith("SASL authentication ")
@@ -534,15 +597,16 @@ public class ConnectionThread implements
 				connectionClosedOnError(e);
 			// Server will destroy connection, but we can speedup
 			// it.
-			xmppConnection.disconnect();
+
+//            xmppConnection.disconnect();
 			return;
 		}
 		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				onAuthorized();
-			}
-		});
+            @Override
+            public void run() {
+                onAuthorized();
+            }
+        });
 	}
 
 	/**
@@ -564,7 +628,9 @@ public class ConnectionThread implements
 			@Override
 			public void run() {
 				connectionItem.onClose(ConnectionThread.this);
-			}
+                System.out.println("connection close called");
+
+            }
 		});
 	}
 
@@ -631,11 +697,20 @@ public class ConnectionThread implements
 		runOnConnectionThread(new Runnable() {
 			@Override
 			public void run() {
-				if (useSRVLookup)
-					srvResolve(fqdn, fqdn, port);
-				else
-					addressResolve(null, fqdn, port, true);
-			}
+                try {
+                    InetAddress addr = InetAddress.getByName(fqdn);
+                    onReady(addr, port);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+
+//				if (useSRVLookup) {
+//                    srvResolve(fqdn, fqdn, port);
+//                }
+//                else {
+//                    addressResolve(null, fqdn, port, true);
+//                }
+            }
 		});
 	}
 

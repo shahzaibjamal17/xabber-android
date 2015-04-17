@@ -14,9 +14,6 @@
  */
 package com.xabber.android.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
@@ -27,6 +24,9 @@ import com.xabber.android.data.Application;
 import com.xabber.android.data.LogManager;
 import com.xabber.android.data.SettingsManager;
 import com.xabber.android.data.notification.NotificationManager;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Basic service to work in background.
@@ -111,7 +111,7 @@ public class XabberService extends Service {
 				LogManager.w(this, "Unable to invoke startForeground" + e);
 			}
 		} else {
-			setForeground(true);
+	//		setForeground(true);
 			try {
 				((android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
 						.notify(NotificationManager.PERSISTENT_NOTIFICATION_ID,
@@ -138,7 +138,7 @@ public class XabberService extends Service {
 				LogManager.w(this, "Unable to invoke stopForeground" + e);
 			}
 		} else {
-			setForeground(false);
+	//		setForeground(false);
 		}
 	}
 
